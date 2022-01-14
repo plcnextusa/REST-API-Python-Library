@@ -46,7 +46,7 @@ class REST:
         # Defining globals
         global deviceInputData
         # Adding to log current state
-        logging.info('API State: Data dictionary updated started')
+        # logging.info('API State: Data dictionary updated started')
         deviceInputData['state'] = 'API State: Data dictionary updated started'
         # Requesting the dictionary
         if self.auth:
@@ -54,7 +54,7 @@ class REST:
         else:
             payload = self.session.request('GET', 'https://localhost/ehmi/data.dictionary.json', verify=False)
         # Checking to make sure response is OK
-        if payload.status_code == 200:
+        if payload.status_code == 200 and payload.content != b'<html><head><meta http-equiv="refresh" content="3; URL=/welcome"></head></html>':
             deviceInputData['isAvailable'] = True
             deviceInputData['state'] = 'API State: Updating data dictionary...'
             # Data pre-processing
@@ -62,7 +62,7 @@ class REST:
             for key in dictionary['HmiVariables2']:
                 varNameList.append(key[13:])
                 varTypeList.append(dictionary['HmiVariables2'][key]['Type'])
-        elif payload.status_code == 404:
+        elif payload.status_code == 404 or (payload.status_code == 200 and payload.content == b'<html><head><meta http-equiv="refresh" content="3; URL=/welcome"></head></html>'):
             logging.info('API State: Unavailable')
             deviceInputData['isAvailable'] = False
             deviceInputData['state'] = 'API State: Unavailable (did you download a PLCnext project with an HMI component yet?)'
@@ -70,7 +70,6 @@ class REST:
             logging.info('API State: Unavailable')
             deviceInputData['isAvailable'] = False
             deviceInputData['state'] = 'API State: Unknown Error'
-
         return varNameList, varTypeList
 
     # Reading tags from the API
@@ -82,37 +81,40 @@ class REST:
         # Defining globals
         global deviceInputData
         # Building URL and headers
-        URL = 'https://localhost/_pxc_api/api/variables/?pathPrefix=Arp.Plc.Eclr/&paths=' + readString(varNameList)
-        # API Request
-        if self.auth:
-            payload = self.session.request('GET', URL, headers=self.headers, verify=False)
+        if deviceInputData['isAvailable']:
+            URL = 'https://localhost/_pxc_api/api/variables/?pathPrefix=Arp.Plc.Eclr/&paths=' + readString(varNameList)
+            # API Request
+            if self.auth:
+                payload = self.session.request('GET', URL, headers=self.headers, verify=False)
+            else:
+                payload = self.session.request('GET', URL, verify=False)
+            # Checking to make sure response is OK
+            if payload.status_code == 200:
+                # logging.info("API State: New API data received")
+                deviceInputData['isAvailable'] = True
+                deviceInputData['state'] = 'API State: New API data received'
+                deviceInputData['timestamp'] = str(datetime.datetime.now())
+                # Data pre-processing
+                variables = json.loads(payload.content)
+                for var in variables['variables']:
+                    varObj.clear()
+                    varObj['name'] = var['path'][13:]
+                    varObj['value'] = var['value']
+                    varObj['type'] = varTypeList[index]
+                    varList.append(varObj.copy())
+                    index = index+1
+                deviceInputData['metrics'] = varList
+            elif payload.status_code == 404:
+                logging.info('API State: Unavailable')
+                deviceInputData['isAvailable'] = False
+                deviceInputData['state'] = 'API State: Unavailable (did you download a PLCnext project with an HMI component yet?)'
+            else:
+                logging.info('API State: Unavailable')
+                deviceInputData['isAvailable'] = False
+                deviceInputData['state'] = 'API State: Unknown Error'
+            return deviceInputData
         else:
-            payload = self.session.request('GET', URL, verify=False)
-        # Checking to make sure response is OK
-        if payload.status_code == 200:
-            logging.info("API State: New API data received")
-            deviceInputData['isAvailable'] = True
-            deviceInputData['state'] = 'API State: New API data received'
-            deviceInputData['timestamp'] = str(datetime.datetime.now())
-            # Data pre-processing
-            variables = json.loads(payload.content)
-            for var in variables['variables']:
-                varObj.clear()
-                varObj['name'] = var['path'][13:]
-                varObj['value'] = var['value']
-                varObj['type'] = varTypeList[index]
-                varList.append(varObj.copy())
-                index = index+1
-            deviceInputData['metrics'] = varList
-        elif payload.status_code == 404:
-            logging.info('API State: Unavailable')
-            deviceInputData['isAvailable'] = False
-            deviceInputData['state'] = 'API State: Unavailable (did you download a PLCnext project with an HMI component yet?)'
-        else:
-            logging.info('API State: Unavailable')
-            deviceInputData['isAvailable'] = False
-            deviceInputData['state'] = 'API State: Unknown Error'
-        return deviceInputData
+            return deviceInputData
 
     def writeAPI(self, variables):
         # Defining vars
@@ -132,20 +134,32 @@ class REST:
             varObj['valueType'] = "Constant"
             varList.append(varObj.copy())
         payload = {"pathPrefix": "Arp.Plc.Eclr/", "variables": varList}
-        self.session.put(URL, headers=header, data=json.dumps(payload), verify=False)
+        status = self.session.put(URL, headers=header, data=json.dumps(payload), verify=False)
+        if status.status_code == 200:
+            return True
+        else:
+            return False
 
 
 def getData(waitTime, auth, username, password):
-    time.sleep(waitTime)
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    api = REST(auth, username, password)
-    tagNames, tagTypes = api.buildDictionary()
-    variables = api.readAPI(tagNames, tagTypes)
-    return variables
+    try:
+        time.sleep(waitTime)
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        api = REST(auth, username, password)
+        tagNames, tagTypes = api.buildDictionary()
+        variables = api.readAPI(tagNames, tagTypes)
+        return variables
+    except Exception as e:
+        logging.info('Cannot GET data from PLCnext Engineer' + repr(e))
+        pass
 
 
 def postData(waitTime, variables, auth, username, password):
-    time.sleep(waitTime)
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    api = REST(auth, username, password)
-    api.writeAPI(variables)
+    try:
+        time.sleep(waitTime)
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        api = REST(auth, username, password)
+        status = api.writeAPI(variables)
+        return status
+    except Exception as e:
+        logging.info('Cannot POST data to PLCnext Engineer' + repr(e))
