@@ -305,7 +305,7 @@ class API:
                 self.refreshed = False
         return self.data.readAPI(varNames=self.data.buildDict())
 
-    def write(self, vars: dict):
+    def write(self, variables: dict):
         # Check to see if session created and logged in
         if not (self.sessionCreated and self.loggedIn):
             # Start PLCnext data session
@@ -324,11 +324,11 @@ class API:
                 self.trigger2hr = False
                 self.refreshed = False
         # Check to make sure list of dicts has correct structure
-        for var in vars:
+        for var in variables:
             if 'name' and 'value' in var:
                 pass
             else:
-                logging.error(f"Variable structure not correct. Expecting [['name': NAME,'value': VALUE],['name': NAME,'value': VALUE]...] got {vars}")
+                logging.error(f"Variable structure not correct. Expecting [['name': NAME,'value': VALUE],['name': NAME,'value': VALUE]...] got {variables}")
                 return False
 
-        return self.data.writeAPI(varStruct=vars)
+        return self.data.writeAPI(varStruct=variables)
