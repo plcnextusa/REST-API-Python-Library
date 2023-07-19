@@ -7,12 +7,13 @@ Examples are provided for authentication and non-authentication methods, with a 
 ## Library functions
 ## Initializing the library
 The below function is used to initialize the library and start communication to the REST API server. This function also handles the authentication token as well as creating a HTTP session. The function output is the variable used to read or write any variables.\
+#### NOTE: If credentails are being used and the library does not have them, errors will flood the logfile but the code will still run. Ensure that you have the correct option selected for authentication!
 Example:
 ```
 plc = REST.API()
 ```
 For this function there are 4 parameters:
-1. credentials: If authentication is being used, enter the username and password within a list
+1. credentials: If authentication is being used, enter the username and password within a list.
 ```
 credentials = ['admin','private']
 ```
@@ -62,6 +63,7 @@ Example output:
 [{'name': 'testBool', 'value': False},{'name': 'testInt', 'value': 15}]
 ```
 The function below will read all tags that are available from the REST API server. The output from the function will be a list containing the name and the value of the variable.
+#### NOTE: The taglist is only read one time. If a program update occurs, restart your program to get the latest tag list.
 ```
 readAll()
 ```
