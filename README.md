@@ -42,7 +42,7 @@ Example:
 ```
 plc = REST.API(logfileNameLocation='/opt/plcnext/project.log'
 ```
-Each of these parameters do not have to be used when initializing the library, but are optional based on your application.\
+Each of these parameters do not have to be used when initializing the library, but are optional based on your application.
 
 ## Reading tags
 There are 2 functions to read tags from the REST API server:\
