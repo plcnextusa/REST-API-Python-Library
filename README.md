@@ -73,7 +73,7 @@ Example output:
 ```
 
 ## Writing tags
-The function below will write tags specified in its parameter variables.\
+The function below will write tags specified in its parameter variables.
 ```
 plc = REST.API()
 plc.write()
