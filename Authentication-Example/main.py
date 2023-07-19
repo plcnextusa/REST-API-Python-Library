@@ -5,7 +5,7 @@ import time
 loopcount = 0
 start_time = time.time()
 # Initialize the API
-plc = REST.API(credentials=['admin','a1749caf'], logfileSize=1000000, logfileBackupCount=1, logfileNameLocation='/opt/plcnext/project.log')
+plc = REST.API(credentials=['admin','private'], logfileSize=1000000, logfileBackupCount=1, logfileNameLocation='/opt/plcnext/project.log')
 
 # Multi-Read
 loopcount = 0
