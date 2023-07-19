@@ -46,7 +46,7 @@ Each of these parameters do not have to be used when initializing the library, b
 
 ## Reading tags
 There are 2 functions to read tags from the REST API server:\
-The function below will read tags specified in its parameter varaibles.\
+The function below will read tags specified in its parameter varaibles.
 ```
 plc = REST.API()
 plc.read()
