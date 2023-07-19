@@ -6,7 +6,7 @@ Examples are provided for authentication and non-authentication methods, with a 
 
 ## Library functions
 ## Initializing the library
-The below function is used to initialize the library and start communication to the REST API server. This function also handles the authentication token as well as creating a HTTP session. The function output is the variable used to read or write any variables.\
+The below function is used to initialize the library and start communication to the REST API server. This function also handles the authentication token as well as creating a HTTP session. The function output is the variable used to read or write any variables.
 #### NOTE: If credentails are being used and the library does not have them, errors will flood the logfile but the code will still run. Ensure that you have the correct option selected for authentication!
 Example:
 ```
