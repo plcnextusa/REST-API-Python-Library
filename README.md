@@ -60,7 +60,7 @@ plc.read(variables = vars)
 ```
 Example output:
 ```
-[{'name': 'testBool', 'value': False},{'name': 'testInt', 'value': 15}]
+[{'name': 'testVariable1', 'value': False},{'name': 'testVariable2', 'value': 15},{'name': 'testVariable3', 'value': 3.345}]
 ```
 The function below will read all tags that are available from the REST API server. The output from the function will be a list containing the name and the value of the variable.
 #### NOTE: The taglist is only read one time. If a program update occurs, restart your program to get the latest tag list.
