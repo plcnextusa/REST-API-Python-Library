@@ -16,7 +16,9 @@ plc = REST.API()
 For this function there are 4 parameters:
 1. credentials: If authentication is being used, enter the username and password within a list.
 ```
+import REST
 credentials = ['admin','private']
+plc = REST.API(credentails = credentials)
 ```
 If authentication is not being used, set credentails to None or do not use the credentails parameter.\
 Example:
