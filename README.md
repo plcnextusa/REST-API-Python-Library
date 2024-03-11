@@ -48,7 +48,7 @@ plc = REST.API(logfileBackupCount=1)
 Example:
 ```
 import REST
-plc = REST.API(logfileNameLocation='/opt/plcnext/project.log'
+plc = REST.API(logfileNameLocation='/opt/plcnext/project.log')
 ```
 Each of these parameters do not have to be used when initializing the library, but are optional based on your application.
 
@@ -77,7 +77,7 @@ The function below will read all tags that are available from the REST API serve
 ```
 import REST
 plc = REST.API()
-readAll()
+plc.readAll()
 ```
 Example output:
 ```
