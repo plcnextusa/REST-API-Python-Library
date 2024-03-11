@@ -10,6 +10,7 @@ The below function is used to initialize the library and start communication to 
 #### NOTE: If credentails are being used and the library does not have them, errors will flood the logfile but the code will still run. Ensure that you have the correct option selected for authentication!
 Example:
 ```
+import REST
 plc = REST.API()
 ```
 For this function there are 4 parameters:
@@ -20,26 +21,31 @@ credentials = ['admin','private']
 If authentication is not being used, set credentails to None or do not use the credentails parameter.\
 Example:
 ```
+import REST
 plc = REST.API(credentails = None)
 
 OR
 
+import REST
 plc = REST.API()
 
 ```
 2. logfileSize: This is the size of the logfile to create for library related issues. The default is 1MB, and the unit for this parameter is bytes.\
 Example:
 ```
+import REST
 plc = REST.API(logfileSize=1000000)
 ```
 3. logfileBackupCount: This is the total number of file backups for the logfile. The default is 1 backup, meaning there is 2MB of logs available. The default is 1.\
 Example:
 ```
+import REST
 plc = REST.API(logfileBackupCount=1)
 ```
 4. logfileNameLocation: This is the name of the logfile and the location to store the logfile. This parameter is all one string, with the full path of the logfile.\
 Example:
 ```
+import REST
 plc = REST.API(logfileNameLocation='/opt/plcnext/project.log'
 ```
 Each of these parameters do not have to be used when initializing the library, but are optional based on your application.
@@ -48,12 +54,14 @@ Each of these parameters do not have to be used when initializing the library, b
 There are 2 functions to read tags from the REST API server:\
 The function below will read tags specified in its parameter varaibles.
 ```
+import REST
 plc = REST.API()
 plc.read()
 ```
 1. variables: This parameter is a list of all the variables that would need to be read from the REST API server. The variable is formatted as a list with each name as a string. The output from the function will be a list containing the name and the value of the variable.\
 Example execution:
 ```
+import REST
 plc = REST.API()
 vars = ['testVariable1','testVariable2','testVariable3']
 plc.read(variables = vars)
@@ -65,6 +73,8 @@ Example output:
 The function below will read all tags that are available from the REST API server. The output from the function will be a list containing the name and the value of the variable.
 #### NOTE: The taglist is only read one time. If a program update occurs, restart your program to get the latest tag list.
 ```
+import REST
+plc = REST.API()
 readAll()
 ```
 Example output:
@@ -75,6 +85,7 @@ Example output:
 ## Writing tags
 The function below will write tags specified in its parameter variables.
 ```
+import REST
 plc = REST.API()
 plc.write()
 ```
