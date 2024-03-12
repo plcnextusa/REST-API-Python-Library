@@ -18,13 +18,13 @@ For this function there are 4 parameters:
 ```
 import REST
 credentials = ['admin','private']
-plc = REST.API(credentails = credentials)
+plc = REST.API(credentials = credentials)
 ```
 If authentication is not being used, set credentails to None or do not use the credentails parameter.\
 Example:
 ```
 import REST
-plc = REST.API(credentails = None)
+plc = REST.API(credentials = None)
 
 OR
 
