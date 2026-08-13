@@ -1,4 +1,4 @@
-# PLCnextAPI
+# PLCnext API Library for Python
 
 A lightweight Python wrapper for the PLCnext REST API that provides automatic session management, authentication support, variable reads and writes, variable dictionary caching, and native PLCnext variable group support.
 
