@@ -1,44 +1,71 @@
-# Libraries to import
-import REST
+import logging
 import time
+from plcnext_api import PLCnextAPI
 
-loopcount = 0
-start_time = time.time()
+# Set the logger to print to console
+logging.basicConfig(level=logging.WARNING, format="%(asctime)s - %(levelname)s - %(message)s")
+
 # Initialize the API
-plc = REST.API(credentials=['admin','private'], logfileSize=1000000, logfileBackupCount=1, logfileNameLocation='/opt/plcnext/project.log')
+plc = PLCnextAPI(ip="localhost",requestTimeout=5,sessionTimeout=10800000,stationID="1")
 
-# Multi-Read
+# Ensure connection exists before benchmarking
+result = plc.connect("admin","private")
+
+if not result.success:
+    raise RuntimeError(result.error)
+
+# ============================================================
+# Read All Variables
+# ============================================================
+
 loopcount = 0
 start_time = time.time()
-while loopcount<=500:
-    plc.readAll()
-    loopcount+=1
+
+while loopcount <= 500:
+    plc.readAllVariables()
+    loopcount += 1
+
 totalTime = time.time() - start_time
+
 print("Read All report:")
-print("--- %s seconds ---" % (totalTime))
-print(f"Requests per second: {500/totalTime}")
-print(f"Average request time: {1/(500/totalTime)}")
+print(f"--- {totalTime} seconds ---")
+print(f"Requests per second: {500 / totalTime}")
+print(f"Average request time: {totalTime / 500}")
 
-# Single-Read
+# ============================================================
+# Read Single Variable
+# ============================================================
+
 loopcount = 0
 start_time = time.time()
-while loopcount<=500:
-    plc.read(['testString'])
-    loopcount+=1
+
+while loopcount <= 500:
+    plc.read(["testString"])
+    loopcount += 1
+
 totalTime = time.time() - start_time
+
 print("Read Single report:")
-print("--- %s seconds ---" % (totalTime))
-print(f"Requests per second: {500/totalTime}")
-print(f"Average request time: {1/(500/totalTime)}")
+print(f"--- {totalTime} seconds ---")
+print(f"Requests per second: {500 / totalTime}")
+print(f"Average request time: {totalTime / 500}")
 
-# Single-Write
+# ============================================================
+# Write Single Variable
+# ============================================================
+
 loopcount = 0
 start_time = time.time()
-while loopcount<=500:
-    plc.write([{'name': 'loopcount', 'value': loopcount}])
-    loopcount+=1
+
+while loopcount <= 500:
+    plc.write({
+        "loopcount": loopcount
+    })
+    loopcount += 1
+
 totalTime = time.time() - start_time
+
 print("Write Single report:")
-print("--- %s seconds ---" % (totalTime))
-print(f"Requests per second: {500/totalTime}")
-print(f"Average request time: {1/(500/totalTime)}")
+print(f"--- {totalTime} seconds ---")
+print(f"Requests per second: {500 / totalTime}")
+print(f"Average request time: {totalTime / 500}")
