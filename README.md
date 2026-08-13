@@ -1,100 +1,715 @@
-# REST-API-Python-Library
+# PLCnextAPI
 
-This library is for communicating to the PLCnext Engineer REST API server. This code is only meant to run locally on a PLCnext target, not on any remote machines.
+A lightweight Python wrapper for the PLCnext REST API that provides automatic session management, authentication support, variable reads and writes, variable dictionary caching, and native PLCnext variable group support.
 
-Examples are provided for authentication and non-authentication methods, with a PLCnext Engineer project included.
+---
 
-## Library functions
-## Initializing the library
-The below function is used to initialize the library and start communication to the REST API server. This function also handles the authentication token as well as creating a HTTP session. The function output is the variable used to read or write any variables.
-#### NOTE: If credentails are being used and the library does not have them, errors will flood the logfile but the code will still run. Ensure that you have the correct option selected for authentication!
+# Features
+
+- Automatic session discovery
+- Automatic session creation
+- Automatic session refresh
+- Optional user authentication
+- Read one or more variables
+- Write one or more variables
+- Read all variables
+- Cached variable dictionary
+- Create PLCnext variable groups
+- Read PLCnext variable groups
+- List active PLCnext groups
+- Remove PLCnext variable groups
+- Structured API result objects
+- Native Python logging support
+
+---
+
+# Installation
+
+## Requirements
+
+- Python 3.7+
+- PLCnext Runtime with REST API enabled
+
+Install dependencies:
+
+```bash
+pip install requests
+```
+
+---
+
+# Importing
+
+```python
+from plcnext_api import PLCnextAPI
+```
+
+---
+
+# Creating an API Instance
+
+```python
+plc = PLCnextAPI(
+    ip="192.168.1.10",
+    requestTimeout=5,
+    sessionTimeout=10800000,
+    stationID="1"
+)
+```
+
+## Parameters (optional)
+
+### `ip`
+
+PLC IP address. If connecting locally, this parameter does not need to be used.
+
+Default:
+
+```python
+ip="localhost"
+```
+
+### `requestTimeout`
+
+HTTP request timeout in seconds.
+
+Default:
+
+```python
+requestTimeout=5
+```
+
+### `sessionTimeout`
+
+Requested PLCnext session timeout in milliseconds.
+
+Default:
+
+```python
+sessionTimeout=10800000
+```
+
+### `stationID`
+
+PLCnext station ID for session management. This should be unique for each connection.
+
+Default:
+
+```python
+stationID="1"
+```
+
+---
+
+# Connecting
+
+The library automatically:
+
+- Authenticates (if credentials are supplied)
+- Discovers existing sessions
+- Creates sessions when necessary
+- Refreshes sessions before timeout
+
+## Anonymous Access (if ehMI Authentication is disabled)
+
+```python
+result = plc.connect()
+
+if not result.success:
+    print(result.error)
+```
+
+## Authenticated Access (eHMI Authenticaton enabled)
+
+```python
+result = plc.connect(
+    username="admin",
+    password="password"
+)
+
+if not result.success:
+    print(result.error)
+```
+
+---
+
+# APIResult
+
+Every public API function returns an `APIResult`.
+
+## Structure
+
+```python
+APIResult(
+    success=True,
+    data=None,
+    error=None
+)
+```
+
+## Example
+
+```python
+result = plc.read(["MotorSpeed"])
+
+if result.success:
+    print(result.data)
+else:
+    print(result.error)
+```
+
+---
+
+# Reading Variables
+
+## Read One Variable
+
+```python
+
+result = plc.read(["MotorSpeed"])
+
+# OR
+
+variable = ["MotorSpeed"]
+result = plc.read(variable)
+```
+
+### Example Response
+
+```python
+{
+    "MotorSpeed": {
+        "value": 1500,
+        "type": None,
+        "error": None
+    }
+}
+```
+
+Type is only used when doing a group read. Error indicates if the variable does not exist, or there was an issue returning a value. Assume the data is stale if error is true.
+
+---
+
+## Read Multiple Variables
+
+```python
+result = plc.read(["MotorSpeed", "MotorRun", "CycleCount"])
+
+# OR
+
+variables = ["MotorSpeed", "MotorRun", "CycleCount"]
+result = plc.read(variables)
+```
+
+### Example Response
+
+```python
+{
+    "MotorSpeed": {
+        "value": 1500,
+        "type": None,
+        "error": None
+    },
+    "MotorRun": {
+        "value": True,
+        "type": None,
+        "error": None
+    },
+    "CycleCount": {
+        "value": 100,
+        "type": None,
+        "error": None
+    }
+}
+```
+
+Type is only used when doing a group read. Error indicates if the variable does not exist, or there was an issue returning a value. Assume the data is stale if error is true.
+
+---
+
+# Writing Variables
+
+## Write One Variable
+
+```python
+result = plc.write({"MotorSpeed": 1500})
+
+# OR
+
+variables["MotorSpeed"] = 1500
+result = plc.write(variables)
+```
+
+---
+
+## Write Multiple Variables
+
+```python
+result = plc.write({"MotorSpeed": 1500, "MotorRun": True, "CycleCount": 100})
+
+# OR
+
+variables["MotorSpeed"] = 1500
+variables["MotorRun"] = True
+variables["CycleCount"] = 100
+result = plc.write(variables)
+```
+
+---
+
+# Variable Dictionary
+
+The variable dictionary is automatically downloaded and cached.
+
+---
+
+## Get Available Variables
+
+```python
+variables = plc.variables
+
+# Print out the list of variables
+for variable in variables:
+    print(variable)
+```
+
+### Example Output
+
+```python
+[
+    "MotorSpeed",
+    "MotorRun",
+    "CycleCount"
+]
+```
+
+---
+
+## Refresh Variable Dictionary
+
+```python
+result = plc.refresh_variables()
+
+# Ensure the request was successful and print the output
+if result.success:
+    print(result.data)
+```
+
+---
+
+# Read All Variables
+
+Reads every variable discovered in the cached variable dictionary.
+
+```python
+result = plc.readAllVariables()
+
+# Ensure the request was successful and print the output
+if result.success:
+    print(result.data)
+```
+
+### Example Response
+
+```python
+{
+    "MotorSpeed": {
+        "value": 1500,
+        "type": None,
+        "error": None
+    },
+    "MotorRun": {
+        "value": True,
+        "type": None,
+        "error": None
+    }
+}
+```
+
+---
+
+# PLCnext Variable Groups
+
+Variable groups allow multiple variables to be registered into a group on the PLC and retrieved using a single request.
+
+This can significantly improve performance when repeatedly requesting the same variables.
+
+---
+
+# List Registered Groups
+
+Returns all active PLCnext groups.
+
+```python
+result = plc.list_groups()
+
+if result.success:
+    for group in result.data:
+        print(group["id"])
+```
+
+### Example Response
+
+```python
+[
+    {
+        "id": "g1527984639",
+        "variableCount": 10,
+        "uri": "https://plc/_pxc_api/api/groups/g1527984639",
+        "createdTimestamp": "1786640140005",
+        "usedTimestamp": "1786640140005",
+        "accessCount": 25,
+        "totalTimeAverage": 1.2,
+        "totalTimeMax": 5.6,
+        "ehmiTimeAverage": 0.8,
+        "ehmiTimeMax": 2.1,
+        "gdsTimeAverage": 0.4,
+        "gdsTimeMax": 1.1
+    }
+]
+```
+
+---
+
+# Create a Group
+
+Create a PLCnext variable group.
+
+```python
+result = plc.create_group(["MotorSpeed", "MotorRun", "CycleCount"])
+
+# OR
+
+group = ["MotorSpeed", "MotorRun", "CycleCount"]
+result = plc.create_group(group)
+```
+
+Retrieve the Group ID:
+
+```python
+groupID = result.data
+```
+
 Example:
-```
-import REST
-plc = REST.API()
-```
-For this function there are 4 parameters:
-1. credentials: If authentication is being used, enter the username and password within a list.
-```
-import REST
-credentials = ['admin','private']
-plc = REST.API(credentials = credentials)
-```
-If authentication is not being used, set credentails to None or do not use the credentails parameter.\
-Example:
-```
-import REST
-plc = REST.API(credentials = None)
 
-OR
-
-import REST
-plc = REST.API()
-
-```
-2. logfileSize: This is the size of the logfile to create for library related issues. The default is 1MB, and the unit for this parameter is bytes.\
-Example:
-```
-import REST
-plc = REST.API(logfileSize=1000000)
-```
-3. logfileBackupCount: This is the total number of file backups for the logfile. The default is 1 backup, meaning there is 2MB of logs available. The default is 1.\
-Example:
-```
-import REST
-plc = REST.API(logfileBackupCount=1)
-```
-4. logfileNameLocation: This is the name of the logfile and the location to store the logfile. This parameter is all one string, with the full path of the logfile.\
-Example:
-```
-import REST
-plc = REST.API(logfileNameLocation='/opt/plcnext/project.log')
-```
-Each of these parameters do not have to be used when initializing the library, but are optional based on your application.
-
-## Reading tags
-There are 2 functions to read tags from the REST API server:\
-The function below will read tags specified in its parameter varaibles.
-```
-import REST
-plc = REST.API()
-plc.read()
-```
-1. variables: This parameter is a list of all the variables that would need to be read from the REST API server. The variable is formatted as a list with each name as a string. The output from the function will be a list containing the name and the value of the variable.\
-Example execution:
-```
-import REST
-plc = REST.API()
-vars = ['testVariable1','testVariable2','testVariable3']
-plc.read(variables = vars)
-```
-Example output:
-```
-[{'name': 'testVariable1', 'value': False},{'name': 'testVariable2', 'value': 15},{'name': 'testVariable3', 'value': 3.345}]
-```
-The function below will read all tags that are available from the REST API server. The output from the function will be a list containing the name and the value of the variable.
-#### NOTE: The taglist is only read one time. If a program update occurs, restart your program to get the latest tag list.
-```
-import REST
-plc = REST.API()
-plc.readAll()
-```
-Example output:
-```
-[{'name': 'testBool', 'value': False},{'name': 'testInt', 'value': 15}]
+```python
+print(groupID)
 ```
 
-## Writing tags
-The function below will write tags specified in its parameter variables.
+Output:
+
+```text
+g2798617204
 ```
-import REST
-plc = REST.API()
-plc.write()
+
+Keep this group ID for the request!
+
+---
+
+# Array Indexing Support for Groups
+
+PLCnext array indexing syntax is supported for groups.
+
+## Single Element
+
+```python
+result = plc.create_group(
+    [
+        "PartArray[2]"
+    ]
+)
 ```
-1. varaibles: This parameter is a list of allof the variables that would need to be written to the REST API server. The variable is formatted as a list with the name and value of each tag. The output of the function will indicate if the write was a success or failure.\
-Example:
+
+## Multiple Elements
+
+```python
+result = plc.create_group(
+    [
+        "PartArray[2;4]"
+    ]
+)
 ```
-plc = REST.API()
-vars = [{'name': 'testInt', 'value': 234},{'name': 'testBool', 'value': True}]
-plc.write(variables=vars)
+
+## Range
+
+```python
+result = plc.create_group(
+    [
+        "PartArray[6-8]"
+    ]
+)
 ```
+
+## Mixed Selections
+
+```python
+result = plc.create_group(
+    [
+        "PartArray[2;4;6-8]"
+    ]
+)
+```
+
+---
+
+# Reading a Group
+
+Read the values contained within a previously registered PLCnext group.
+
+```python
+result = plc.read_group(groupID)
+```
+
+### Example Response
+
+```python
+{
+    "MotorSpeed": {
+        "value": 1500,
+        "type": "INT",
+        "error": None
+    },
+    "MotorRun": {
+        "value": True,
+        "type": "BOOL",
+        "error": None
+    },
+    "CycleCount": {
+        "value": 100,
+        "type": "INT",
+        "error": None
+    }
+}
+```
+
+Group reads include PLC data types when available.
+
+---
+
+# Removing a Group
+
+Remove a previously registered group.
+
+```python
+result = plc.remove_group(groupID)
+
+if result.success:
+    print("Group removed successfully.")
+```
+
+---
+
+# Logging
+
+The library uses Python's built-in logging module.
+
+---
+
+## Enable Informational Logging
+
+```python
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+```
+
+### Example Output
+
+```text
+2026-08-13 17:00:00 - INFO - Authentication succeeded.
+2026-08-13 17:00:00 - INFO - Session found for station ID 1.
+2026-08-13 17:00:00 - INFO - Session ID active.
+```
+
+---
+
+## Enable Debug Logging
+
+```python
+import logging
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+```
+
+This includes:
+
+- Session discovery details
+- Session creation details
+- Authentication responses
+- API status codes
+- Variable dictionary responses
+
+---
+
+# Performance Benchmark Examples
+
+## Read All Variables
+
+```python
+import time
+
+start_time = time.time()
+
+for _ in range(500):
+    plc.readAllVariables()
+
+total_time = time.time() - start_time
+
+print(f"Requests/sec: {500 / total_time}")
+print(f"Average request time: {total_time / 500}")
+```
+
+---
+
+## Read Single Variable
+
+```python
+import time
+
+start_time = time.time()
+
+for _ in range(500):
+    plc.read(["testString"])
+
+total_time = time.time() - start_time
+
+print(f"Requests/sec: {500 / total_time}")
+print(f"Average request time: {total_time / 500}")
+```
+
+---
+
+## Write Single Variable
+
+```python
+import time
+
+start_time = time.time()
+
+for i in range(500):
+    plc.write(
+        {
+            "loopcount": i
+        }
+    )
+
+total_time = time.time() - start_time
+
+print(f"Requests/sec: {500 / total_time}")
+print(f"Average request time: {total_time / 500}")
+```
+
+---
+
+## Read Variable Group
+
+```python
+group_result = plc.create_group(
+    [
+        "testString"
+    ]
+)
+
+groupID = group_result.data
+
+start_time = time.time()
+
+for _ in range(500):
+    plc.read_group(groupID)
+
+total_time = time.time() - start_time
+
+print(f"Requests/sec: {500 / total_time}")
+print(f"Average request time: {total_time / 500}")
+
+plc.remove_group(groupID)
+```
+
+---
+
+# Complete Example
+
+```python
+from plcnext_api import PLCnextAPI
+
+plc = PLCnextAPI(
+    ip="192.168.1.10"
+)
+
+result = plc.connect()
+
+if not result.success:
+    raise RuntimeError(result.error)
+
+result = plc.read(
+    [
+        "MotorSpeed",
+        "MotorRun"
+    ]
+)
+
+print(result.data)
+
+plc.write(
+    {
+        "MotorRun": True
+    }
+)
+
+group = plc.create_group(
+    [
+        "MotorSpeed",
+        "MotorRun"
+    ]
+)
+
+groupID = group.data
+
+result = plc.read_group(groupID)
+
+print(result.data)
+
+plc.remove_group(groupID)
+```
+
+---
+
+# Public API Reference
+
+```python
+connect(username=None, password=None)
+
+read(variables: list[str])
+
+write(variables: dict)
+
+@property
+variables
+
+refresh_variables()
+
+readAllVariables()
+
+list_groups()
+
+create_group(variables: list[str])
+
+read_group(groupID: str)
+
+remove_group(groupID: str)
+```
+
+---
+
+
+# License
+
+MIT License
+
+Copyright © 2026 PLCnextAPI Contributors.
