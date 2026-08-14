@@ -478,7 +478,7 @@ class PLCnextAPI:
         # If the response is successful, parse the JSON and set the sessionID
         self.logger.info(f'Session created successfully.')
         self.logger.debug(f"Session information: {response.json()}")
-        self.sessionID = response.json()["id"]
+        self.sessionID = response.json()["sessionID"]
         self.sessionCreatedTime = datetime.now(timezone.utc)
         self.logger.debug(f"Session created time: {self.sessionCreatedTime}")
         return True
