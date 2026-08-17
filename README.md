@@ -110,7 +110,7 @@ The library automatically:
 - Creates sessions when necessary
 - Refreshes sessions before timeout
 
-## Anonymous Access (if ehMI Authentication is disabled)
+## Anonymous Access (ehMI Authentication is disabled)
 
 ```python
 result = plc.connect()
